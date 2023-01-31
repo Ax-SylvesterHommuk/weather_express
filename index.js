@@ -6,7 +6,7 @@ const fetch = require('node-fetch')
 app.set('view engine', 'ejs')
 app.set('views', path.join(__dirname, 'views'))
 
-const key= '559b01018d1357db4e2132b83d795dd9'
+const key = '559b01018d1357db4e2132b83d795dd9'
 
 app.use(express.json())
 app.use(express.urlencoded({extended:true}))
@@ -24,7 +24,8 @@ const getWeatherDataPromise = (url) => {
             let result = {
                 description: description,
                 city:city,
-                temp:temp
+                temp:temp,
+                error: null
             }
             resolve(result)
         })
@@ -36,22 +37,28 @@ const getWeatherDataPromise = (url) => {
 
 app.all('/', (req,res) => {
     let city
+
     if(req.method == 'GET'){
         city = 'Tartu'
     }
     if(req.method == 'POST'){
         city = req.body.cityname
-    }    
+    }
+
     let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${key}`
     getWeatherDataPromise(url)
     .then(data => {
         res.render('index', data)
+    })
+    .catch(error => {
+        res.render('index', {error: 'Problem with getting the data, try again!'})
     })
 })
 
 app.get('/', (req,res) => {
     let city = 'Tartu'
     let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${key}`
+
     getWeatherDataPromise(url)
     .then(data=>{
         res.render('index', data)
@@ -61,6 +68,7 @@ app.get('/', (req,res) => {
 app.post('/', (req,res) => {
     let city = req.body.cityname
     let url = `https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${key}`
+
     getWeatherDataPromise(url)
         .then((data)=>{
             res.render('index', data)
